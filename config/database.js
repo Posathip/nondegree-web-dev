@@ -1,6 +1,9 @@
 require('dotenv').config(); // โหลด .env
 const { Sequelize } = require('sequelize');
 
+
+require('dotenv').config();
+
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
@@ -8,10 +11,13 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: 'mysql',
-    port: process.env.DB_PORT || 3306,
-    logging: false, // ถ้าไม่อยากให้ log SQL
+    port: process.env.DB_PORT,
+    logging: false,
   }
 );
+
+module.exports = sequelize;
+
 
 sequelize.authenticate()
   .then(() => console.log('✅ Database connected...'))
