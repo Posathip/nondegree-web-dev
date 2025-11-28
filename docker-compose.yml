@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234        # รหัสผ่าน root
+      MYSQL_DATABASE: stockshirt       # สร้าง database
+      MYSQL_USER: appuser              # user ปกติ (ไม่ใช่ root)
+      MYSQL_PASSWORD: userpassword         # password ของ user ปกติ       
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}     # จาก .env
+    ports:
+      - "8080:80"  # เข้าผ่าน http://localhost:8080
+    depends_on:
+      - db
+
+  app:
+    build: .
+    container_name: node-app
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+volumes:
+  db_data:

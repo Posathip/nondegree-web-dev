@@ -1,12 +1,12 @@
 const User = require('../models/user');
-const bcrypt = require('bcrypt');     // สำหรับ hash password
+const bcrypt = require('bcrypt');    
 const jwt = require('jsonwebtoken');
 
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // ตรวจสอบว่ามี email หรือไม่
+    // ตรวจสอบว่ามี email ในระบบไหม
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
@@ -24,6 +24,13 @@ exports.login = async (req, res) => {
       process.env.JWT_SECRET || 'your_jwt_secret',
       { expiresIn: '1h' }
     );
+     res.cookie("token", token, {
+      httpOnly: true,       // ป้องกัน XSS กรณี เอา Javascript อ่าน cookie
+      secure: false,        //  HTTPS
+      sameSite: "lax",      // กัน CSRF ระดับพื้นฐาน
+      maxAge: 3600000,      // 1 ชั่วโมง
+      path: "/"
+    });
 
     res.json({
       success: true,
@@ -55,7 +62,7 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: 'admin' // default role
+      role: 'admin' 
     });
 
     res.status(200).json({
@@ -71,6 +78,28 @@ exports.register = async (req, res) => {
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+exports.profile = async (req, res) => {
+  try {
+
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.status(401).json({ success: false, message: "No token provided" });
+
+    const token = authHeader.split(" ")[1]; // Bearer <token>
+    if (!token) return res.status(401).json({ success: false, message: "Invalid token format" });
+
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret");
+    console.log(req.cookies);
+  
+    const user = await User.findByPk(decoded.id, { attributes: ["user_id", "name", "email", "role"] });
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error("Profile error:", err);
+    res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };
 

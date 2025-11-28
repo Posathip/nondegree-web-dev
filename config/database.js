@@ -20,7 +20,7 @@ module.exports = sequelize;
 
 
 sequelize.authenticate()
-  .then(() => console.log('✅ Database connected...'))
-  .catch(err => console.error('❌ DB connection error:', err));
+  .then(() => console.log(' Database connected'))
+  .catch(err => console.error('DB connection error:', err));
 
 module.exports = sequelize;

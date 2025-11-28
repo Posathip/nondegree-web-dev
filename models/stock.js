@@ -34,7 +34,7 @@ const Stock = sequelize.define(
   },
   {
     tableName: 'stocks',
-    timestamps: true,   // <- เปิดให้ sequelize ใช้ createdAt / updatedAt
+    timestamps: true,   
   }
 );
 
